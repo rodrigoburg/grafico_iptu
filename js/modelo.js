@@ -8,50 +8,79 @@ var margins = {
 }
 
 var iniciar = function() {
+
+    $('#botao_distrito').dropdown();
+
     $.getJSON("dados/valores.json", function (d) {
-        window.dados = parseia_dados(d)
+        window.dados = d
+        window.dados_parseados = parseia_dados(d);
+        desenha_grafico(dados_parseados);
     })
 }
 
-function parseia_dados(data) {
-    var total = {}
-    var temp = 0
-    for (var distrito in data) {
-        var temp1 = 0
-        for (var tipo in data[distrito]) {
-            if (!(tipo in total)) {
-                total[tipo] = {}
-            }
-            var temp2 = 0
-            for (var faixa in data[distrito][tipo]) {
-                if (!(faixa in total[tipo])) {
-                    total[tipo][faixa] = 0
-                }
-                total[tipo][faixa] += data[distrito][tipo][faixa]
-                temp2 += data[distrito][tipo][faixa]
-            }
-            data[distrito][tipo]["total"] = temp2
-            temp1 += temp2
-        }
-        data[distrito]["total"] = temp1
-        temp += temp1
+function conserta_faixa(faixa) {
+    traducao = {
+        '100000':'Menor que R$ 100 mil',
+        '200000':'Entre R$ 100 mil e R$ 200 mil',
+        '300000':'Entre R$ 200 mil e R$ 300 mil',
+        '500000':'Entre R$ 300 mil e R$ 500 mil',
+        '1000000':'Entre R$ 500 mil e R$ 1 milhão',
+        '10000000000':'Mais que R$ 1 milhão'
     }
-    total["total"] = temp
-    for (tipo in total) {
-        var temp1 = 0
-        for (var faixa in total[tipo]) {
-            temp1 += total[tipo][faixa]
+    return traducao[faixa]
+}
+
+function conserta_tipo(tipo) {
+    if (tipo == 'terreno_vazio') return "TERRENO VAZIO"
+    if (tipo == 'total') return 'total'
+    return tipo.toUpperCase()
+
+}
+
+function parseia_dados(data) {
+    //nessa variável aqui vamos guardar os itens no formato do dimple (lista de dicionários)
+    var saida = []
+
+    //loopão
+    var distritos = []
+    var tipos = []
+    for (var distrito in data) {
+        if (distrito != 'total' && distrito != 'NA') distritos.push(distrito)
+        for (var tipo in data[distrito]) {
+            if ((tipos.indexOf(conserta_tipo(tipo)) == -1) && (tipo != 'total')) tipos.push(conserta_tipo(tipo))
+            for (var faixa in data[distrito][tipo]) {
+                var item = {"distrito":distrito,"tipo":conserta_tipo(tipo),"faixa":conserta_faixa(faixa),"numero":data[distrito][tipo][faixa]}
+                saida.push(item)
+            }
         }
-        total[tipo]["total"] = temp1
     }
 
-    data["total"] = total
-    return data
+    //agora povoa o dropdown de distritos
+    distritos = distritos.sort()
+    $('#menu_distrito').append('<li><a href="#">TOTAL</a></li>')
+    $('#menu_distrito').append(' <li role="separator" class="divider"></li>')
+
+    distritos.forEach(function(distrito) {
+        var opcao = '<li><a href="#">'+distrito+'</a></li>'
+        $('#menu_distrito').append(opcao)
+    })
+
+    //agora povoa o dropdown de tipos
+    tipos = tipos.sort()
+    $('#menu_tipo').append('<li><a href="#">TOTAL</a></li>')
+    $('#menu_tipo').append(' <li role="separator" class="divider"></li>')
+
+    tipos.forEach(function(tipos) {
+        var opcao = '<li><a href="#">'+tipos+'</a></li>'
+        $('#menu_tipo').append(opcao)
+    })
+
+    return saida
 }
 
 window.grafico = null
 
-function desenha_grafico() {
+function desenha_grafico(data) {
     var cores_default = [
         "#A11217",
         "#BA007C",
@@ -65,62 +94,37 @@ function desenha_grafico() {
         "#634600"
     ]
 
-    var svg = dimple.newSvg("#grafico",width,height)
-    var myChart = new dimple.chart(svg, dados);
+    ordem_x = ['Menor que R$ 100 mil','Entre R$ 100 mil e R$ 200 mil','Entre R$ 200 mil e R$ 300 mil','Entre R$ 300 mil e R$ 500 mil','Entre R$ 500 mil e R$ 1 milhão','Mais que R$ 1 milhão']
 
+    var svg = dimple.newSvg("#grafico",width,height)
+    data = dimple.filterData(data, "distrito", "total");
+    data = dimple.filterData(data, "tipo", "total");
+    data = dimple.filterData(data, "faixa", ordem_x);
+
+    var myChart = new dimple.chart(svg, data);
 
     myChart.setBounds(margins.left, margins.top, width - margins.right, height - margins.bottom);
-    var x = myChart.addCategoryAxis("x", "faixa");
+    var x = myChart.addCategoryAxis("x", ["faixa","distrito"]);
 
-    ordem_x = []
     x.addOrderRule(ordem_x)
-    x.addGroupOrderRule(ordem_x)
+    //x.addGroupOrderRule(ordem_x)
 
     var y = myChart.addMeasureAxis("y", "numero");
-
-    x.fontSize = "12px"
-    y.fontSize = "12px"
-
-    //y.overrideMax = 20000000000.0
-
-
-    var s = myChart.addSeries(null, dimple.plot.bar);
-
-    s.stacked = false
-
-    legenda = myChart.addLegend(margins.left+10,margins.top-20, width-margins.right, 200)
-
-    ordem_legenda = []
-    legenda._getEntries = function () {
-        var orderedValues = ordem_legenda;
-        var entries = [];
-        orderedValues.forEach(function (v) {
-            v = v.trim()
-            entries.push(
-                {
-                    key: v,
-                    fill: myChart.getColor(v).fill,
-                    stroke: myChart.getColor(v).stroke,
-                    opacity: myChart.getColor(v).opacity,
-                    series: s,
-                    aggField: [v]
-                }
-            );
-        }, this);
-
-        return entries;
-    };
-
+    var s = myChart.addSeries(["faixa","distrito"], dimple.plot.bar);
 
     myChart.draw();
     window.grafico = myChart
-    x.shapes.selectAll("text").attr("transform",
-        function (d) {
-            //return d3.select(this).attr("transform") + " translate(-14, 38) rotate(-90)";
-            return d3.select(this).attr("transform") + " translate(0, 20) rotate(-45)";
-        }
-    );
+}
 
+function atualiza_grafico(data,distrito,tipo) {
+    ordem_x = ['Menor que R$ 100 mil','Entre R$ 100 mil e R$ 200 mil','Entre R$ 200 mil e R$ 300 mil','Entre R$ 300 mil e R$ 500 mil','Entre R$ 500 mil e R$ 1 milhão','Mais que R$ 1 milhão']
+    var myChart = window.grafico
+    data = dimple.filterData(data, "distrito", ["total",distrito]);
+    data = dimple.filterData(data, "tipo", tipo);
+    data = dimple.filterData(data, "faixa", ordem_x);
+    console.log(data)
+    myChart.data = data;
+    myChart.draw();
 }
 
 iniciar()

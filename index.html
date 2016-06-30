@@ -5,10 +5,35 @@
     <script src="js/jquery.min.js"></script>
     <script src="js/d3.min.js"></script>
     <script src="js/dimple.v2.1.6.min.js"></script>
-    <script src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/basico.css">
 </head>
 <body>
+
+<div id='menu'>
+	<div class="form-group">
+	  <label for="usr">Digite o valor do seu imóvel:</label>
+	  <input type="text" class="form-control" id="usr">
+	</div>
+
+	<div id='botoes'>
+		<div class="dropdown" id='distrito'>
+		  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Distrito
+		  <span class="caret"></span></button>
+		  <ul class="dropdown-menu" id='menu_distrito'>
+		  </ul>
+		</div>
+
+		<div class="dropdown" id='tipo'>
+		  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Tipo
+		  <span class="caret"></span></button>
+		  <ul class="dropdown-menu" id='menu_tipo'>
+		  </ul>
+		</div>
+	</div>
+</div>
+
 <div id="grafico"></div>
 <script src="js/modelo.js"></script>
 </body>
