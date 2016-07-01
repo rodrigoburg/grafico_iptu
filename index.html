@@ -11,26 +11,36 @@
 </head>
 <body>
 
-<div id='menu'>
-	<div class="form-group">
-	  <label for="usr">Digite o valor do seu imóvel:</label>
-	  <input type="text" class="form-control" id="usr">
+<div id='menu_e_texto'>
+	<div id='menu' class='col-md-6'>
+		<div class="form-group">
+		  <label for="usr">Digite um valor de imóvel:</label>
+		  <input type="text" class="form-control" id="usr">
+		</div>
+
+		<div id='botoes'>
+			<div class="dropdown" id='distrito'>
+			  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" id='botao_distrito'>Distrito
+			  <span class="caret"></span></button>
+			  <ul class="dropdown-menu" id='menu_distrito'>
+			  </ul>
+			</div>
+
+	 	  <div id='calcular'><button class="btn btn-primary" type="button">Calcular</button></div>
+
+			<div class="dropdown" id='tipo'>
+			  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Tipo
+			  <span class="caret"></span></button>
+			  <ul class="dropdown-menu" id='menu_tipo'>
+			  </ul>
+			</div>
+
+
+		</div>
 	</div>
 
-	<div id='botoes'>
-		<div class="dropdown" id='distrito'>
-		  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Distrito
-		  <span class="caret"></span></button>
-		  <ul class="dropdown-menu" id='menu_distrito'>
-		  </ul>
-		</div>
-
-		<div class="dropdown" id='tipo'>
-		  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Tipo
-		  <span class="caret"></span></button>
-		  <ul class="dropdown-menu" id='menu_tipo'>
-		  </ul>
-		</div>
+	<div id='texto_caixa' class='col-md-6'>
+	<p id='texto'></p>
 	</div>
 </div>
 
