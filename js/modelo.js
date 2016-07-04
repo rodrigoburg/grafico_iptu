@@ -6,6 +6,10 @@ String.prototype.capitalize = function() {
     return saida
 }
 
+function numero_com_pontos(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 
 var width = $("body").width()* 0.9
 var height = 550
@@ -149,18 +153,6 @@ function parseia_dados(data) {
 window.grafico = null
 
 function desenha_grafico(data) {
-    var cores_default = [
-        "#A11217",
-        "#BA007C",
-        "#5E196F",
-        "#00408F",
-        "#007CC0",
-        "#009493",
-        "#00602D",
-        "#A3BD31",
-        "#E9BC00",
-        "#634600"
-    ]
 
     ordem_x = ['Menor que R$ 100 mil','Entre R$ 100 mil e R$ 200 mil','Entre R$ 200 mil e R$ 300 mil','Entre R$ 300 mil e R$ 500 mil','Entre R$ 500 mil e R$ 1 milhão','Mais que R$ 1 milhão']
 
@@ -181,8 +173,17 @@ function desenha_grafico(data) {
     var s = myChart.addSeries(["faixa","distrito"], dimple.plot.bar);
     window.dados_filtrados = data;
 
+    legend = myChart.addLegend(-270, 30, 195, 220, "right");
+
+    myChart.assignColor("TOTAL","#007CC0")
+    distritos.forEach(function (d) {
+        myChart.assignColor(d,"#A11217")
+    })
+
     myChart.draw();
     window.grafico = myChart
+
+
 }
 
 function atualiza_grafico(data,distrito,tipo) {
@@ -193,7 +194,7 @@ function atualiza_grafico(data,distrito,tipo) {
     data = dimple.filterData(data, "faixa", ordem_x);
     window.dados_filtrados = data;
     myChart.data = data;
-    myChart.draw();
+    myChart.draw(1000);
 }
 
 function atualiza_textos(valor) {
@@ -209,7 +210,7 @@ function atualiza_textos(valor) {
                 num_temp += dados[distrito_selec][tipo][faixa_temp]
             }
         }
-        var texto = 'Há pelo menos '+num_temp +' '+tipo_temp+' mais caros que o seu em '
+        var texto = '<p id="texto"> Há pelo menos <b>'+numero_com_pontos(num_temp) +'</b> '+tipo_temp+' mais caros que o seu em '
 
     } else if (faixa == "10000000000") {
         var num_temp = 0
@@ -218,7 +219,7 @@ function atualiza_textos(valor) {
                 num_temp += dados[distrito_selec][tipo][faixa_temp]
             }
         }
-        var texto = 'Há pelo menos '+num_temp +' '+tipo_temp+' mais baratos que o seu em '
+        var texto = 'Há pelo menos <b>'+numero_com_pontos(num_temp) +'</b> '+tipo_temp+' mais baratos que o seu em '
 
     } else {
         var baratos_temp = 0
@@ -226,20 +227,21 @@ function atualiza_textos(valor) {
         for (var faixa_temp in dados[distrito_selec][tipo]) {
             if (faixa_temp < faixa) {
                 baratos_temp += dados[distrito_selec][tipo][faixa_temp]
-            } else if (faixa_temp > faixa) {
+            } else if ((faixa_temp > faixa) && (faixa_temp != 'TOTAL')){
                 caros_temp += dados[distrito_selec][tipo][faixa_temp]
+                console.log(faixa_temp,faixa)
             }
         }
-        var texto = 'Há pelo menos '+baratos_temp +' '+tipo_temp+' mais baratos que o seu e '+ caros_temp +' mais caros em '
+        var texto = 'Há pelo menos <b>'+numero_com_pontos(baratos_temp) +'</b> '+tipo_temp+' mais baratos que o seu e <b>'+ numero_com_pontos(caros_temp) +'</b> mais caros em '
     }
 
     var dados_temp = dimple.filterData(dados_filtrados,"faixa",conserta_faixa(faixa))
     dados_temp = dimple.filterData(dados_temp,"distrito",distrito_selec)
     var perc = dados_temp[0]["porcentual"]
 
-    texto += distrito +". Na faixa de preços referente a esse imóvel, " + conserta_faixa(faixa).toLowerCase().replace("r$","R$") +", estão cerca de " +perc+"% do total deste tipo de imóvel nessa região."
+    texto += '<b>' + distrito +"</b>. Na faixa de preços referente a esse imóvel, <b>" + conserta_faixa(faixa).toLowerCase().replace("r$","R$").replace("r$","R$") +"</b>, estão cerca de <b>" +perc+"%</b> do total deste tipo de imóvel nessa região.</p>"
 
-    $("#texto").text(texto)
+    $("#texto").html(texto)
 }
 
 iniciar()
