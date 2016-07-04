@@ -61,7 +61,9 @@ function inicia_dropdowns() {
         var el = $(this)
         distrito_selec = $(this).text().trim()
         $(this).html('<a href="#">'+distrito_selec + ' <span class="glyphicon glyphicon-ok distrito_ok"></span></a>')
+        $('#botao_distrito').text(distrito_selec)
         atualiza_grafico(dados_parseados,distrito_selec,tipo_select);
+        atualiza_textos();
     })
 
     $('#botao_tipo').dropdown();
@@ -70,14 +72,16 @@ function inicia_dropdowns() {
         var el = $(this)
         tipo_select = $(this).text().trim()
         $(this).html('<a href="#">'+tipo_select + ' <span class="glyphicon glyphicon-ok tipo_ok"></span></a>')
+        $('#botao_tipo').text(tipo_select)
         atualiza_grafico(dados_parseados,distrito_selec,tipo_select);
+        atualiza_textos();
     })
 
     //aqui coloca o evento no botão de calcular
     $("#calcular").on("click",function () {
         valor_select = $("#usr").val()
         if (valor_select) {
-            atualiza_textos(valor_select);
+            atualiza_textos();
         }
 
     })
@@ -114,13 +118,13 @@ function conserta_tipo(tipo) {
 }
 
 function traduz_tipo(tipo) {
-    tipo = tipo.replace(" ","_")
+    tipo = tipo.replace(" ","_").toLowerCase();
     traducao = {
         'residencial':'imóveis residenciais',
         'comercial':'imóveis comerciais',
         'terreno_vazio':'terrenos vazios',
         'outros':'imóveis de uso variado',
-        'TOTAL':'imóveis'
+        'total':'imóveis'
     }
     return traducao[tipo]
 }
@@ -212,53 +216,65 @@ function atualiza_grafico(data,distrito,tipo) {
     window.dados_filtrados = data;
     myChart.data = data;
     myChart.draw(1000);
+
+        //torce as labels
+    $(".dimple-axis-x").find('text').each(function (d) {
+        $(this).attr('transform','rotate(30) translate(-50,0)');
+    })
+
 }
 
-function atualiza_textos(valor) {
-    var tipo_temp = traduz_tipo(tipo_select)
-    var tipo = tipo_select.replace(" ","_")
-    var faixa = acha_faixa(valor)
-    var distrito = traduz_distrito(distrito_selec)
+function arruma_tipo(tipo) {
+    if (tipo == 'TOTAL') return 'TOTAL'
+    return tipo.replace(" ","_").toLowerCase();
+}
 
-    if (faixa == "100000") {
-        var num_temp = 0
-        for (var faixa_temp in dados[distrito_selec][tipo]) {
-            if ((faixa_temp != faixa) && (faixa_temp != 'TOTAL')) {
-                num_temp += dados[distrito_selec][tipo][faixa_temp]
-            }
-        }
-        var texto = '<p id="texto"> Há pelo menos <b>'+numero_com_pontos(num_temp) +'</b> '+tipo_temp+' mais caros que o seu em '
+function atualiza_textos() {
+    if (valor_select) {
+        var tipo_temp = traduz_tipo(tipo_select)
+        var tipo = arruma_tipo(tipo_select)
+        var faixa = acha_faixa(valor_select)
+        var distrito = traduz_distrito(distrito_selec)
 
-    } else if (faixa == "10000000000") {
-        var num_temp = 0
-        for (var faixa_temp in dados[distrito_selec][tipo]) {
-            if ((faixa_temp != faixa) && (faixa_temp != 'TOTAL')) {
-                num_temp += dados[distrito_selec][tipo][faixa_temp]
+        if (faixa == "100000") {
+            var num_temp = 0
+            for (var faixa_temp in dados[distrito_selec][tipo]) {
+                if ((faixa_temp != faixa) && (faixa_temp != 'TOTAL')) {
+                    num_temp += dados[distrito_selec][tipo][faixa_temp]
+                }
             }
-        }
-        var texto = 'Há pelo menos <b>'+numero_com_pontos(num_temp) +'</b> '+tipo_temp+' mais baratos que o seu em '
+            var texto = '<p id="texto"> Há pelo menos <b>'+numero_com_pontos(num_temp) +' '+tipo_temp+'</b> mais caros que o seu em '
 
-    } else {
-        var baratos_temp = 0
-        var caros_temp = 0
-        for (var faixa_temp in dados[distrito_selec][tipo]) {
-            if (faixa_temp < faixa) {
-                baratos_temp += dados[distrito_selec][tipo][faixa_temp]
-            } else if ((faixa_temp > faixa) && (faixa_temp != 'TOTAL')){
-                caros_temp += dados[distrito_selec][tipo][faixa_temp]
-                console.log(faixa_temp,faixa)
+        } else if (faixa == "10000000000") {
+            var num_temp = 0
+            for (var faixa_temp in dados[distrito_selec][tipo]) {
+                if ((faixa_temp != faixa) && (faixa_temp != 'TOTAL')) {
+                    num_temp += dados[distrito_selec][tipo][faixa_temp]
+                }
             }
+            var texto = 'Há pelo menos <b>'+numero_com_pontos(num_temp) +' '+tipo_temp+'</b> mais baratos que o seu em '
+
+        } else {
+            var baratos_temp = 0
+            var caros_temp = 0
+            for (var faixa_temp in dados[distrito_selec][tipo]) {
+                if (faixa_temp < faixa) {
+                    baratos_temp += dados[distrito_selec][tipo][faixa_temp]
+                } else if ((faixa_temp > faixa) && (faixa_temp != 'TOTAL')){
+                    caros_temp += dados[distrito_selec][tipo][faixa_temp]
+                }
+            }
+            var texto = 'Há pelo menos <b>'+numero_com_pontos(baratos_temp) +' '+tipo_temp+'</b> mais baratos que o seu e <b>'+ numero_com_pontos(caros_temp) +'</b> mais caros em '
         }
-        var texto = 'Há pelo menos <b>'+numero_com_pontos(baratos_temp) +'</b> '+tipo_temp+' mais baratos que o seu e <b>'+ numero_com_pontos(caros_temp) +'</b> mais caros em '
+
+        var dados_temp = dimple.filterData(dados_filtrados,"faixa",conserta_faixa(faixa))
+        dados_temp = dimple.filterData(dados_temp,"distrito",distrito_selec)
+        var perc = dados_temp[0]["porcentual"]
+
+        texto += '<b>' + distrito +"</b>. Na faixa de preços referente a esse imóvel, <b>" + conserta_faixa(faixa).toLowerCase().replace("r$","R$").replace("r$","R$") +"</b>, estão cerca de <b>" +perc+"%</b> do total deste tipo de imóvel nessa região.</p>"
+
+        $("#texto").html(texto)
     }
-
-    var dados_temp = dimple.filterData(dados_filtrados,"faixa",conserta_faixa(faixa))
-    dados_temp = dimple.filterData(dados_temp,"distrito",distrito_selec)
-    var perc = dados_temp[0]["porcentual"]
-
-    texto += '<b>' + distrito +"</b>. Na faixa de preços referente a esse imóvel, <b>" + conserta_faixa(faixa).toLowerCase().replace("r$","R$").replace("r$","R$") +"</b>, estão cerca de <b>" +perc+"%</b> do total deste tipo de imóvel nessa região.</p>"
-
-    $("#texto").html(texto)
 }
 
 iniciar()
