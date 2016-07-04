@@ -167,9 +167,11 @@ function desenha_grafico(data) {
     var x = myChart.addCategoryAxis("x", ["faixa","distrito"]);
 
     x.addOrderRule(ordem_x)
-    //x.addGroupOrderRule(ordem_x)
 
     var y = myChart.addMeasureAxis("y", "porcentual");
+
+    y.title = 'Porcentual de imóveis em cada faixa de valor'
+
     var s = myChart.addSeries(["faixa","distrito"], dimple.plot.bar);
     window.dados_filtrados = data;
 
@@ -183,7 +185,9 @@ function desenha_grafico(data) {
     myChart.draw();
     window.grafico = myChart
 
-
+    $(".dimple-axis-x").find('text').each(function (d) {
+        $(this).attr('transform','rotate(30) translate(-50,0)');
+    })
 }
 
 function atualiza_grafico(data,distrito,tipo) {
