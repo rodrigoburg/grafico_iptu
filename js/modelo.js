@@ -171,9 +171,19 @@ function desenha_grafico(data) {
     var y = myChart.addMeasureAxis("y", "porcentual");
 
     y.title = 'Porcentual de imóveis em cada faixa de valor'
+    x.title = ''
 
     var s = myChart.addSeries(["faixa","distrito"], dimple.plot.bar);
-    window.dados_filtrados = data;
+
+    //customiza a tooltip
+    s.getTooltipText = function(e) {
+        var faixa = e.aggField[0];
+        var distrito = e.aggField[1];
+        return [
+            distrito,
+            faixa + ": " + e.y +"%"
+        ];
+    };
 
     legend = myChart.addLegend(-270, 30, 195, 220, "right");
 
@@ -182,9 +192,12 @@ function desenha_grafico(data) {
         myChart.assignColor(d,"#A11217")
     })
 
+    window.dados_filtrados = data;
+
     myChart.draw();
     window.grafico = myChart
 
+    //torce as labels
     $(".dimple-axis-x").find('text').each(function (d) {
         $(this).attr('transform','rotate(30) translate(-50,0)');
     })
