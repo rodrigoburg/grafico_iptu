@@ -40,8 +40,13 @@ rect.dimple-tooltip {
     stroke: #E9A083 !important;
 }
 
-text.dimple-tooltip {
-    font-size:16px !important;
+.dimple-tooltip {
+  font-family: "Georgia", "Times New Roman", Times, serif;
+  font-size:100% !important;
+}
+
+.tooltip {
+    font-size:18px ;
 }
 
 text.dimple-legend {
@@ -67,6 +72,10 @@ text.dimple-legend {
 #distrito {
     float: left;
     width:45%;
+}
+
+b {
+    font-size:18px;
 }
 
 #tipo {
