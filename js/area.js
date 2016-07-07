@@ -23,10 +23,10 @@ var deixar_labels = ['100000','200000','300000','400000','500000','600000','7000
 var width = $("body").width()* 0.9
 var height = 550
 var margins = {
-    bottom:110,
+    bottom:50,
     left:70,
     right:70,
-    top:80
+    top:40
 }
 
 var distrito_selec = "TOTAL";
@@ -199,20 +199,10 @@ function desenha_grafico(data) {
 
     var s = myChart.addSeries("faixa", dimple.plot.bar);
 
-    //customiza a tooltip
-    s.getTooltipText = function(e) {
-        var faixa = e.aggField[0];
-        var caro_barato = calcula_mais_menos(distrito_selec,tipo_select,faixa);
-        var perc;
-        if (caro_barato['caro_perc'] < 50) {
-            var perc = caro_barato['caro_perc']+"% mais caros dessa região"
-        } else {
-            var perc = caro_barato['barato_perc']+"% mais baratos dessa região"
-        }
-        return [
-            'Os imóveis '+traduz_faixa(faixa) + " estão entre os " + perc
-        ];
-    };
+      // Handle the hover event - overriding the default behaviour
+      s.addEventHandler("mouseover", onHover);
+      // Handle the leave event - overriding the default behaviour
+      s.addEventHandler("mouseleave", onLeave);
 
     //myChart.assignColor("TOTAL","#007CC0")
 
@@ -231,6 +221,23 @@ function desenha_grafico(data) {
             $(this).remove()
         }
     })
+}
+
+function onHover(e) {
+    var faixa = e.xValue;
+    var caro_barato = calcula_mais_menos(distrito_selec,tipo_select,faixa);
+    var perc;
+    if (caro_barato['caro_perc'] < 50) {
+        var perc = caro_barato['caro_perc']+"% mais caros</b> dessa região"
+    } else {
+        var perc = caro_barato['barato_perc']+"% mais baratos</b> dessa região"
+    }
+    $('#info_barra').html('<p class="well well-sm">Os imóveis <b>'+traduz_faixa(faixa) + "</b> estão entre os <b>" + perc+"</p>")
+
+}
+
+function onLeave(e) {
+    $('#info_barra').html('')
 }
 
 function atualiza_grafico(data,distrito,tipo) {

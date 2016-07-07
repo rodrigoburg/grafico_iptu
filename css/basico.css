@@ -63,7 +63,9 @@ text.dimple-legend {
     width:95%;
 }
 
-
+#info_barra {
+    padding-left:35px;
+}
 .titulo {
     padding-left:15px;
 }
