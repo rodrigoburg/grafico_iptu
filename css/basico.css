@@ -62,29 +62,17 @@ text.dimple-legend {
     padding:10px;
     width:95%;
 }
-#botoes {
-    width: 80%;
-    margin: auto;
-    padding: 5px;
-    display: inline-block;
+
+
+.titulo {
+    padding-left:15px;
 }
 
-#distrito {
-    float: left;
-    width:45%;
+#texto > b {
+    font-size:16px;
 }
 
-b {
-    font-size:18px;
+#assinatura {
+    font-size:16px;
 }
 
-#tipo {
-    margin-left: 60%;
-    width:10%;
-    margin-right:30%;
-}
-
-#calcular {
-    float:right;
-    margin-right:-28%;
-}

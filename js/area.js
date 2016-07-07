@@ -65,7 +65,6 @@ function inicia_dropdowns() {
     })
 
     //agora iniciamos ambos e colocamos os eventos
-    $('#botao_distrito').dropdown();
     $("#menu_distrito").find("li").on("click", function () {
         $(".distrito_ok").remove()
         var el = $(this)
@@ -77,7 +76,6 @@ function inicia_dropdowns() {
         cria_linha();
     })
 
-    $('#botao_tipo').dropdown();
     $("#menu_tipo").find("li").on("click", function () {
         $(".tipo_ok").remove()
         var el = $(this)
