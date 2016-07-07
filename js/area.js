@@ -14,6 +14,19 @@ function sortNumber(a,b) {
     return a - b;
 }
 
+function closest (num, arr) {
+    var curr = arr[0];
+    var diff = Math.abs (num - curr);
+    for (var val = 0; val < arr.length; val++) {
+        var newdiff = Math.abs (num - arr[val]);
+        if (newdiff < diff) {
+            diff = newdiff;
+            curr = arr[val];
+        }
+    }
+    return curr;
+}
+
 var div = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
@@ -35,6 +48,7 @@ var valor_select;
 var svg;
 
 var iniciar = function() {
+    $('#outros').hide();
     $.getJSON("dados/valores_area.json", function (d) {
         window.dados = d
         window.dados_parseados = parseia_dados(d);
@@ -82,6 +96,11 @@ function inicia_dropdowns() {
         tipo_select = $(this).text().trim()
         $(this).html('<a href="#">'+tipo_select + ' <span class="glyphicon glyphicon-ok tipo_ok"></span></a>')
         $('#botao_tipo').text(tipo_select)
+        if (tipo_select == "OUTROS") {
+            $("#outros").show();
+        } else {
+            $("#outros").hide();
+        }
         atualiza_grafico(dados_parseados,distrito_selec,tipo_select);
         atualiza_textos();
         cria_linha();
@@ -121,6 +140,13 @@ function conserta_tipo(tipo) {
     if (tipo == 'terreno_vazio') return "TERRENO VAZIO"
     return tipo.toUpperCase()
 }
+
+function desconserta_tipo(tipo) {
+    if (tipo == 'TERRENO VAZIO') return "terreno_vazio"
+    if (tipo == 'TOTAL') return 'TOTAL'
+    return tipo.toLowerCase()
+}
+
 
 function traduz_tipo(tipo) {
     tipo = tipo.replace(" ","_").toLowerCase();
@@ -187,7 +213,7 @@ function desenha_grafico(data) {
     var myChart = new dimple.chart(svg, data);
 
     myChart.setBounds(margins.left, margins.top, width - margins.right, height - margins.bottom);
-    var x = myChart.addCategoryAxis("x", ["faixa","distrito"]);
+    var x = myChart.addCategoryAxis("x", "faixa");
 
     var ordem_faixas = acha_ordem(faixas)
     x.addOrderRule(ordem_faixas)
@@ -210,9 +236,8 @@ function desenha_grafico(data) {
         myChart.assignColor(d,"#A11217")
     })
 
-    window.dados_filtrados = data;
-
     myChart.draw();
+    window.dados_filtrados = data;
     window.grafico = myChart
 
     //deixa só algumas labels
@@ -221,23 +246,72 @@ function desenha_grafico(data) {
             $(this).remove()
         }
     })
+
+    //agora montamos um array de posições ao longo do svg e qual barra é a mais próxima dela
+    //vamos usar esse array na hora que passarmos o mouse em cima, para descobrir em que barra estamos
+    window.posicoes = {'pos':[],'faixa':[]}
+    for (var f in faixas) {
+        var pos = x._scale(faixas[f]);
+        posicoes['pos'].push(pos);
+        posicoes['faixa'].push(faixas[f]);
+    }
+
+    //retangulo transparente de overlay para o mouseover
+    svg.append("rect")
+      .attr("class", "overlay")
+      .attr("width", width)
+      .attr("height", height)
+      .on("mouseover", onHover)
+      .on("mouseout", onLeave)
+      .on("mousemove", onHover);
+
+    //linha transparente para tbm o mouseover
+    vertical = svg.append("svg:line")
+        .attr("x1", 0)
+        .attr("y1", 10)
+        .attr("x2", 0)
+        .attr("y2", 540)
+        .attr("class", "linha_hover")
+        .style({
+            "stroke": "#000000",
+            "stroke-dasharray": "4",
+            "stroke-width": "1",
+            "stroke-opacity": "0.8"
+        })
+
+        .style("opacity", "0");
 }
 
 function onHover(e) {
-    var faixa = e.xValue;
-    var caro_barato = calcula_mais_menos(distrito_selec,tipo_select,faixa);
-    var perc;
-    if (caro_barato['caro_perc'] < 50) {
-        var perc = caro_barato['caro_perc']+"% mais caros</b> dessa região"
-    } else {
-        var perc = caro_barato['barato_perc']+"% mais baratos</b> dessa região"
-    }
-    $('#info_barra').html('<p class="well well-sm">Os imóveis <b>'+traduz_faixa(faixa) + "</b> estão entre os <b>" + perc+"</p>")
+    var pos = d3.mouse(this)[0];
+    //se estiver dentro da área do gráfico
+    if (pos >= posicoes["pos"][0]) {
+        //achamos a faixa que bate com o array de posicoes e faixas que já calculamos
+        var index = posicoes["pos"].indexOf(closest(pos,posicoes["pos"]))
+        var faixa = posicoes["faixa"][index]
 
+        //montamos a string para o html da barra de informações
+        var caro_barato = calcula_mais_menos(distrito_selec,desconserta_tipo(tipo_select),faixa);
+        var perc;
+        if (caro_barato['caro_perc'] < 50) {
+            var perc = caro_barato['caro_perc']+"% mais caros</b> dessa região"
+        } else {
+            var perc = caro_barato['barato_perc']+"% mais baratos</b> dessa região"
+        }
+        $('#info_barra').html('<p class="well well-sm">Os imóveis <b>'+traduz_faixa(faixa) + "</b> estão entre os <b>" + perc+"</p>")
+
+        //checamos se existe uma linha já para só a movermos
+       mousex = d3.mouse(this);
+       mousex = mousex[0] + 5;
+       vertical.style("opacity", 1)
+       vertical.attr("x1", mousex)
+       vertical.attr("x2", mousex)
+    }
 }
 
 function onLeave(e) {
     $('#info_barra').html('')
+   vertical.style("opacity",0)
 }
 
 function atualiza_grafico(data,distrito,tipo) {

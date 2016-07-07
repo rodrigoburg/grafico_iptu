@@ -31,6 +31,11 @@ svg {
     left: 0;
 }
 
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
 .dimple-axis {
     font-size:14px !important;
 }
@@ -65,6 +70,11 @@ text.dimple-legend {
 
 #info_barra {
     padding-left:35px;
+}
+
+#rodape {
+    padding-left: 35px;
+
 }
 .titulo {
     padding-left:15px;
