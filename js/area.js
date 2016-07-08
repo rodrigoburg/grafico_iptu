@@ -6,6 +6,11 @@ String.prototype.capitalize = function() {
     return saida
 }
 
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement)
+};
+
 function numero_com_pontos(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
@@ -33,7 +38,6 @@ var div = d3.select("body").append("div")
 
 
 var width = $("body").width()* 0.9
-var height = 550
 var margins = {
     bottom:65,
     left:55,
@@ -43,8 +47,10 @@ var margins = {
 
 if (width > 500) { //tela grande
     var deixar_labels = ['100000','200000','300000','400000','500000','600000','700000','800000','900000','1000000','1100000','1200000','1300000','1400000','1500000','1750000','2000000','2200000','2400000','2600000','2800000','3000000','3500000','4000000','4500000','5000000','6000000','7000000','8000000','9000000']
+    var height = 450
 } else { //celular
     var deixar_labels = ['100000','300000','500000','700000','900000','1100000','1300000','1500000','2000000','2400000','2800000','3500000','4500000','6000000','8000000','10000000']
+    var height = 350
 }
 
 var distrito_selec = "TOTAL";
@@ -113,13 +119,35 @@ function inicia_dropdowns() {
 
     //aqui coloca o evento no botão de calcular
     $("#calcular").on("click",function () {
-        valor_select = $("#usr").val()
+        //força zoom out se for no cel
+        $('body').css('zoom','100%'); /* Webkit browsers */
+        $('body').css('zoom','1'); /* Other non-webkit browsers */
+        $('body').css('-moz-transform','scale(1, 1)'); /* Moz-browsers */
+
+        valor_select = $("#valor_imovel").val().replaceAll('.',"");
         if (valor_select) {
             atualiza_textos();
             cria_linha();
         }
-
     })
+
+    //e aqui no proprio input
+    $('#valor_imovel').keyup(function (e) {
+        if (e.keyCode == 13) {
+            //força zoom out se for no cel
+            $('body').css('zoom','100%'); /* Webkit browsers */
+            $('body').css('zoom','1'); /* Other non-webkit browsers */
+            $('body').css('-moz-transform','scale(1, 1)'); /* Moz-browsers */
+
+            valor_select = $("#valor_imovel").val().replaceAll('.',"")
+            if (valor_select) {
+                atualiza_textos();
+                cria_linha();
+            }
+
+        }
+    });
+
 }
 
 function acha_faixa(faixa) {
@@ -128,6 +156,8 @@ function acha_faixa(faixa) {
         var temp = parseInt(faixas[f])
         if (faixa < temp) return faixas[f]
     }
+    //se não achou nenhum valor menor, é pq é acima do valor máximo
+    return "10000000000"
 }
 
 function traduz_faixa(faixa) {
@@ -275,7 +305,7 @@ function desenha_grafico(data) {
         .attr("x1", 0)
         .attr("y1", 10)
         .attr("x2", 0)
-        .attr("y2", 540)
+        .attr("y2", height-55)
         .attr("class", "linha_hover")
         .style({
             "stroke": "#000000",
@@ -350,9 +380,9 @@ function cria_linha() {
     var pos_x = $('.dimple-'+faixa).attr('x')
     var myLine = svg.append("svg:line")
         .attr("x1", pos_x)
-        .attr("y1", 60)
+        .attr("y1", 10)
         .attr("x2", pos_x)
-        .attr("y2", 520)
+        .attr("y2", height-55)
         .attr("class", "linha_imovel")
         .style("stroke", "rgb(6,120,155)")
         .style({
@@ -411,14 +441,15 @@ function atualiza_textos() {
         var faixa = acha_faixa(valor_select)
         var distrito = traduz_distrito(distrito_selec)
 
-        if (faixa == "100000") {
+        if (faixa == "25000") {
             var num_temp = 0
             for (var faixa_temp in dados[distrito_selec][tipo]) {
                 if ((faixa_temp != faixa) && (faixa_temp != 'TOTAL')) {
                     num_temp += dados[distrito_selec][tipo][faixa_temp]
                 }
             }
-            var texto = '<p id="texto"> Há pelo menos <b>'+numero_com_pontos(num_temp) +' '+tipo_temp+'</b> mais caros que o seu em '
+            var caro_barato = calcula_mais_menos(distrito_selec,tipo,faixa)
+            var texto = '<p id="texto"> Há pelo menos <b>'+numero_com_pontos(num_temp) +' '+tipo_temp+'</b> mais caros que o seu '
 
         } else if (faixa == "10000000000") {
             var num_temp = 0
@@ -427,7 +458,8 @@ function atualiza_textos() {
                     num_temp += dados[distrito_selec][tipo][faixa_temp]
                 }
             }
-            var texto = 'Há pelo menos <b>'+numero_com_pontos(num_temp) +' '+tipo_temp+'</b> mais baratos que o seu em '
+            var caro_barato = calcula_mais_menos(distrito_selec,tipo,faixa)
+            var texto = 'Há pelo menos <b>'+numero_com_pontos(num_temp) +' '+tipo_temp+'</b> mais baratos que o seu '
 
         } else {
             var caro_barato = calcula_mais_menos(distrito_selec,tipo,faixa)
@@ -440,6 +472,7 @@ function atualiza_textos() {
         texto += '<b>' + distrito +"</b>. Os imóveis nesta faixa de valor, <b>" + traduz_faixa(faixa).toLowerCase().replace('r$','R$').replace('r$','R$') +"</b>, estão entre os <b>"
 
         var perc;
+
         if (caro_barato['caro_perc'] < 50) {
             perc = caro_barato['caro_perc']+"%</b> mais caros dessa região.</p>"
         } else {

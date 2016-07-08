@@ -50,9 +50,6 @@ text.dimple-legend {
     fill: #8f597d !important;
 }
 
-#texto_caixa {
-    padding-top:15px;
-}
 #menu_e_texto {
     padding:0;
     width:95%;
@@ -80,5 +77,9 @@ text.dimple-legend {
 
 #assinatura {
     font-size:16px;
+}
+
+#menu {
+    padding-bottom:20px;
 }
 
