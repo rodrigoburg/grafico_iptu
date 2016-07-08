@@ -1,5 +1,5 @@
 html {
-    width:900px;
+    max-width: 900px;
     height:100%;
     margin:0;
     padding: 0;
@@ -16,19 +16,6 @@ body {
     font-size: 14px;
     text-align: justify;
     text-justify: inter-word;
-}
-
-div.grafico {
-    height: 0;
-    padding-top: 65%;
-    position: relative;
-}
-
-svg {
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
 }
 
 .overlay {
@@ -63,21 +50,28 @@ text.dimple-legend {
     fill: #8f597d !important;
 }
 
+#texto_caixa {
+    padding-top:15px;
+}
 #menu_e_texto {
-    padding:10px;
+    padding:0;
     width:95%;
 }
 
 #info_barra {
-    padding-left:35px;
+    padding-left:10px;
 }
 
 #rodape {
-    padding-left: 35px;
-
+    padding-left: 10px;
 }
+
+#outros_infos {
+    width:95%;
+}
+
 .titulo {
-    padding-left:15px;
+    padding-left:10px;
 }
 
 #texto > b {
