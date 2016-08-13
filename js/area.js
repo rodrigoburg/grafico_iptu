@@ -97,8 +97,11 @@ function inicia_dropdowns() {
         $(this).html('<a href="#">'+distrito_selec + ' <span class="glyphicon glyphicon-ok distrito_ok"></span></a>')
         $('#botao_distrito').text(distrito_selec)
         atualiza_grafico(dados_parseados,distrito_selec,tipo_select);
-        atualiza_textos();
-        cria_linha();
+        if (valor_select) {
+            atualiza_textos();
+            cria_linha();
+        }
+
     })
 
     $("#menu_tipo").find("li").on("click", function () {
@@ -113,8 +116,10 @@ function inicia_dropdowns() {
             $("#outros").hide();
         }
         atualiza_grafico(dados_parseados,distrito_selec,tipo_select);
-        atualiza_textos();
-        cria_linha();
+        if (valor_select) {
+            atualiza_textos();
+            cria_linha();
+        }
     })
 
     //aqui coloca o evento no botão de calcular
